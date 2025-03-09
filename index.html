@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML 파일 업로드 및 코드 생성</title>
+    <title>HTML 파일 불러오기 및 코드 복사</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,6 +13,9 @@
             width: 100%;
             height: 200px;
             margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         button {
             margin-top: 10px;
@@ -28,8 +31,8 @@
     <input type="file" id="fileInput" accept=".html">
     <button id="confirmBtn" disabled>확인 (코드 생성)</button>
     
-    <h3>생성된 HTML 코드</h3>
-    <textarea id="generatedCode" readonly></textarea>
+    <h3>불러온 HTML 코드</h3>
+    <textarea id="htmlCode" readonly></textarea>
 
     <script>
         document.getElementById('fileInput').addEventListener('change', function(event) {
@@ -37,46 +40,43 @@
 
             if (file && file.type === "text/html") {
                 const reader = new FileReader();
-                
+
                 reader.onload = function(e) {
-                    let htmlContent = e.target.result;
+                    const fileContent = e.target.result;
+                    const htmlContent = minifyHtml(fileContent);
 
-                    // 불필요한 부분 제거 (예시: <head>와 <style> 태그 내용)
-                    htmlContent = htmlContent.replace(/<style[\s\S]*?<\/style>/g, '');  // <style> 태그 내용 삭제
-                    htmlContent = htmlContent.replace(/<script[\s\S]*?<\/script>/g, '');  // <script> 태그 내용 삭제
-                    htmlContent = htmlContent.replace(/<head>[\s\S]*?<\/head>/g, '');    // <head> 태그 내용 삭제
-                    htmlContent = htmlContent.replace(/\s+/g, ' ').trim();               // 불필요한 공백 제거
-
-                    // 요약된 코드 생성
-                    const summaryCode = htmlContent;
-
-                    // 생성된 코드 textarea에 표시
-                    document.getElementById('generatedCode').value = summaryCode;
+                    // 불러온 HTML 코드 출력
+                    document.getElementById('htmlCode').value = htmlContent;
                     document.getElementById('confirmBtn').disabled = false;
                 };
 
                 reader.readAsText(file);
             } else {
-                alert("HTML 파일을 선택하세요.");
+                alert("HTML 파일만 선택하세요.");
                 event.target.value = "";
             }
         });
 
         document.getElementById('confirmBtn').addEventListener('click', async function() {
-            const textArea = document.getElementById('generatedCode');
+            const textArea = document.getElementById('htmlCode');
             const text = textArea.value;
 
             try {
-                // 최신 브라우저 지원
+                // 최신 브라우저에서 클립보드 복사
                 await navigator.clipboard.writeText(text);
                 alert("HTML 코드가 복사되었습니다!");
             } catch (err) {
-                // 일부 브라우저에서 execCommand 대체 (구버전용)
+                // 구버전 브라우저에서 execCommand 사용
                 textArea.select();
                 document.execCommand("copy");
                 alert("HTML 코드가 복사되었습니다! (구방식)");
             }
         });
+
+        // HTML 코드 최소화 함수
+        function minifyHtml(html) {
+            return html.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+        }
     </script>
 
 </body>
