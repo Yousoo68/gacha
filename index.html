@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>파일 로드 및 복사</title>
+    <title>이미지 파일 로드 및 복사</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea {
-            width: 100%;
-            height: 50px;
+        input[type="file"] {
             margin-top: 10px;
         }
         button {
             margin-top: 10px;
             padding: 10px;
             cursor: pointer;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+        }
+        img {
+            max-width: 100%;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -26,25 +33,36 @@
     <h2>이미지 파일 불러오기</h2>
     
     <input type="file" id="fileInput" accept="image/png, image/jpeg">
-    <button id="confirmBtn" disabled>확인 (링크 생성)</button>
+    <button id="confirmBtn" disabled>확인 (링크 복사)</button>
     
-    <h3>파일 링크</h3>
-    <textarea id="fileLink" readonly></textarea>
+    <h3>이미지 미리보기</h3>
+    <img id="imagePreview" src="" alt="미리보기 이미지" style="display: none;">
 
+    <h3>생성된 링크</h3>
+    <textarea id="generatedLink" readonly></textarea>
+    
     <script>
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
 
             if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-                const fileName = file.name.split('.')[0];  // 파일 이름 (확장자 제외)
-                const fileExtension = file.name.split('.').pop();  // 파일 확장자
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgSrc = e.target.result;
 
-                // 생성된 링크 형식 (GitHub raw 링크)
-                const generatedLink = `https://raw.githubusercontent.com/Yousoo68/H2JhFqK/refs/heads/main/${fileName}.${fileExtension}`;
+                    // 미리보기 이미지 표시
+                    const imagePreview = document.getElementById('imagePreview');
+                    imagePreview.src = imgSrc;
+                    imagePreview.style.display = 'block';
 
-                // 파일 링크 textarea에 표시
-                document.getElementById('fileLink').value = generatedLink;
-                document.getElementById('confirmBtn').disabled = false;
+                    // 생성된 링크
+                    const generatedLink = document.getElementById('generatedLink');
+                    generatedLink.value = imgSrc;
+
+                    // 확인 버튼 활성화
+                    document.getElementById('confirmBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);  // Base64로 파일을 읽음
             } else {
                 alert("PNG 또는 JPG 파일을 선택하세요.");
                 event.target.value = "";
@@ -52,18 +70,18 @@
         });
 
         document.getElementById('confirmBtn').addEventListener('click', async function() {
-            const textArea = document.getElementById('fileLink');
-            const text = textArea.value;
+            const generatedLink = document.getElementById('generatedLink');
+            const link = generatedLink.value;
 
             try {
-                // 최신 브라우저 지원
-                await navigator.clipboard.writeText(text);
-                alert("이미지 파일 링크가 복사되었습니다!");
+                // 클립보드에 링크 복사
+                await navigator.clipboard.writeText(link);
+                alert("이미지 링크가 복사되었습니다!");
             } catch (err) {
                 // 일부 브라우저에서 execCommand 대체 (구버전용)
-                textArea.select();
+                generatedLink.select();
                 document.execCommand("copy");
-                alert("이미지 파일 링크가 복사되었습니다! (구방식)");
+                alert("이미지 링크가 복사되었습니다! (구방식)");
             }
         });
     </script>
