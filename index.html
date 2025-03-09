@@ -11,7 +11,7 @@
         }
         textarea {
             width: 100%;
-            height: 300px;
+            height: 50px;
             margin-top: 10px;
         }
         button {
@@ -19,46 +19,32 @@
             padding: 10px;
             cursor: pointer;
         }
-        .image-container img {
-            max-width: 100%;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
 
-    <h2>파일 불러오기 및 링크 복사</h2>
+    <h2>이미지 파일 불러오기</h2>
     
-    <input type="file" id="fileInput" accept=".png, .jpg, .jpeg">
-    <button id="confirmBtn" disabled>확인 (복사)</button>
+    <input type="file" id="fileInput" accept="image/png, image/jpeg">
+    <button id="confirmBtn" disabled>확인 (링크 생성)</button>
     
-    <h3>파일 미리보기</h3>
-    <div class="image-container" id="imagePreview"></div>
-
     <h3>파일 링크</h3>
     <textarea id="fileLink" readonly></textarea>
-    
+
     <script>
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
 
             if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const fileURL = e.target.result;
-                    const imagePreview = document.getElementById('imagePreview');
-                    const fileLinkArea = document.getElementById('fileLink');
-                    
-                    // 이미지 미리보기
-                    imagePreview.innerHTML = `<img src="${fileURL}" alt="Image Preview">`;
+                const fileName = file.name.split('.')[0];  // 파일 이름 (확장자 제외)
+                const fileExtension = file.name.split('.').pop();  // 파일 확장자
 
-                    // 100자 이하로 파일 링크 표시
-                    const shortLink = fileURL.substring(0, 100);
-                    fileLinkArea.value = shortLink;
+                // 생성된 링크 형식 (GitHub raw 링크)
+                const generatedLink = `https://raw.githubusercontent.com/Yousoo68/H2JhFqK/refs/heads/main/${fileName}.${fileExtension}`;
 
-                    document.getElementById('confirmBtn').disabled = false;
-                };
-                reader.readAsDataURL(file);
+                // 파일 링크 textarea에 표시
+                document.getElementById('fileLink').value = generatedLink;
+                document.getElementById('confirmBtn').disabled = false;
             } else {
                 alert("PNG 또는 JPG 파일을 선택하세요.");
                 event.target.value = "";
@@ -72,12 +58,12 @@
             try {
                 // 최신 브라우저 지원
                 await navigator.clipboard.writeText(text);
-                alert("파일 링크가 복사되었습니다!");
+                alert("이미지 파일 링크가 복사되었습니다!");
             } catch (err) {
                 // 일부 브라우저에서 execCommand 대체 (구버전용)
                 textArea.select();
                 document.execCommand("copy");
-                alert("파일 링크가 복사되었습니다! (구방식)");
+                alert("이미지 파일 링크가 복사되었습니다! (구방식)");
             }
         });
     </script>
