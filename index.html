@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML 파일 로드 및 복사</title>
+    <title>이미지 파일 로드 및 복사</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea {
+        #imagePreview {
             width: 100%;
-            height: 300px;
+            max-width: 400px;
             margin-top: 10px;
         }
         button {
@@ -19,48 +19,65 @@
             padding: 10px;
             cursor: pointer;
         }
+        #imageLink {
+            margin-top: 10px;
+            width: 100%;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <h2>HTML 파일 불러오기</h2>
+    <h2>이미지 파일 불러오기</h2>
     
-    <input type="file" id="fileInput" accept=".html">
-    <button id="confirmBtn" disabled>확인 (복사)</button>
+    <input type="file" id="fileInput" accept=".png,.jpg,.jpeg">
+    <button id="confirmBtn" disabled>확인 (링크 복사)</button>
     
-    <h3>파일 내용</h3>
-    <textarea id="fileContent" readonly></textarea>
-
+    <h3>이미지 미리보기</h3>
+    <img id="imagePreview" src="" alt="미리보기" style="display: none;">
+    
+    <h3>이미지 링크</h3>
+    <input type="text" id="imageLink" readonly>
+    
     <script>
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
 
-            if (file && file.type === "text/html") {
+            if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('fileContent').value = e.target.result;
+                    // 이미지 미리보기
+                    const imagePreview = document.getElementById('imagePreview');
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+
+                    // 링크 입력창에 파일 URL 설정
+                    const imageLink = document.getElementById('imageLink');
+                    imageLink.value = e.target.result;
+
+                    // 확인 버튼 활성화
                     document.getElementById('confirmBtn').disabled = false;
                 };
-                reader.readAsText(file);
+                reader.readAsDataURL(file);
             } else {
-                alert("HTML 파일을 선택하세요.");
+                alert("PNG 또는 JPG 이미지를 선택하세요.");
                 event.target.value = "";
             }
         });
 
         document.getElementById('confirmBtn').addEventListener('click', async function() {
-            const textArea = document.getElementById('fileContent');
-            const text = textArea.value;
+            const imageLink = document.getElementById('imageLink');
+            const link = imageLink.value;
 
             try {
-                // 최신 브라우저 지원
-                await navigator.clipboard.writeText(text);
-                alert("HTML 코드가 복사되었습니다!");
+                // 최신 브라우저에서 클립보드에 복사
+                await navigator.clipboard.writeText(link);
+                alert("이미지 링크가 복사되었습니다!");
             } catch (err) {
-                // 일부 브라우저에서 execCommand 대체 (구버전용)
-                textArea.select();
+                // 구버전 브라우저에서 execCommand 대체
+                imageLink.select();
                 document.execCommand("copy");
-                alert("HTML 코드가 복사되었습니다! (구방식)");
+                alert("이미지 링크가 복사되었습니다! (구방식)");
             }
         });
     </script>
