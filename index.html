@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 파일 업로드 및 링크 복사</title>
+    <title>HTML 파일 업로드 및 코드 생성</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,7 +11,7 @@
         }
         textarea {
             width: 100%;
-            height: 50px;
+            height: 200px;
             margin-top: 10px;
         }
         button {
@@ -23,47 +23,58 @@
 </head>
 <body>
 
-    <h2>이미지 파일 불러오기</h2>
+    <h2>HTML 파일 불러오기</h2>
     
-    <input type="file" id="fileInput" accept="image/png, image/jpeg">
-    <button id="confirmBtn" disabled>확인 (링크 생성)</button>
+    <input type="file" id="fileInput" accept=".html">
+    <button id="confirmBtn" disabled>확인 (코드 생성)</button>
     
-    <h3>파일 링크</h3>
-    <textarea id="fileLink" readonly></textarea>
+    <h3>생성된 HTML 코드</h3>
+    <textarea id="generatedCode" readonly></textarea>
 
     <script>
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
 
-            if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-                const fileName = file.name.split('.')[0];  // 파일 이름 (확장자 제외)
-                const fileExtension = file.name.split('.').pop();  // 파일 확장자
+            if (file && file.type === "text/html") {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    let htmlContent = e.target.result;
 
-                // GitHub에 업로드된 이미지의 링크 형식 (raw.githubusercontent.com)
-                const generatedLink = `https://raw.githubusercontent.com/Yousoo68/H2JhFqK/refs/heads/main/${fileName}.${fileExtension}`;
+                    // 불필요한 부분 제거 (예시: <head>와 <style> 태그 내용)
+                    htmlContent = htmlContent.replace(/<style[\s\S]*?<\/style>/g, '');  // <style> 태그 내용 삭제
+                    htmlContent = htmlContent.replace(/<script[\s\S]*?<\/script>/g, '');  // <script> 태그 내용 삭제
+                    htmlContent = htmlContent.replace(/<head>[\s\S]*?<\/head>/g, '');    // <head> 태그 내용 삭제
+                    htmlContent = htmlContent.replace(/\s+/g, ' ').trim();               // 불필요한 공백 제거
 
-                // 파일 링크 textarea에 표시
-                document.getElementById('fileLink').value = generatedLink;
-                document.getElementById('confirmBtn').disabled = false;
+                    // 요약된 코드 생성
+                    const summaryCode = htmlContent;
+
+                    // 생성된 코드 textarea에 표시
+                    document.getElementById('generatedCode').value = summaryCode;
+                    document.getElementById('confirmBtn').disabled = false;
+                };
+
+                reader.readAsText(file);
             } else {
-                alert("PNG 또는 JPG 파일을 선택하세요.");
+                alert("HTML 파일을 선택하세요.");
                 event.target.value = "";
             }
         });
 
         document.getElementById('confirmBtn').addEventListener('click', async function() {
-            const textArea = document.getElementById('fileLink');
+            const textArea = document.getElementById('generatedCode');
             const text = textArea.value;
 
             try {
                 // 최신 브라우저 지원
                 await navigator.clipboard.writeText(text);
-                alert("이미지 파일 링크가 복사되었습니다!");
+                alert("HTML 코드가 복사되었습니다!");
             } catch (err) {
                 // 일부 브라우저에서 execCommand 대체 (구버전용)
                 textArea.select();
                 document.execCommand("copy");
-                alert("이미지 파일 링크가 복사되었습니다! (구방식)");
+                alert("HTML 코드가 복사되었습니다! (구방식)");
             }
         });
     </script>
