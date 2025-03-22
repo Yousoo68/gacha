@@ -3,81 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML 파일 불러오기 및 코드 복사</title>
+    <title>확률시뮬레이터</title>
     <style>
+        /* 기본 스타일 */
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        textarea {
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
             width: 100%;
-            height: 200px;
-            margin-top: 10px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            max-width: 400px;
         }
-        button {
-            margin-top: 10px;
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
             padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-group input::placeholder {
+            color: #999;
+        }
+
+        .input-group button {
+            padding: 10px 15px;
+            background-color: #ff4d4d;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
+            font-size: 14px;
+        }
+
+        .input-group button:hover {
+            background-color: #cc0000;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .buttons button {
+            flex: 1;
+            padding: 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            color: black; /* 룰렛 애니메이션 중 이름은 검정색 */
+        }
+
+        .winner {
+            color: red; /* 당첨된 이름은 빨간색 */
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .input-group input {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            .input-group button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .buttons button {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            #result {
+                font-size: 20px;
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
-
-    <h2>HTML 파일 불러오기</h2>
-    
-    <input type="file" id="fileInput" accept=".html">
-    <button id="confirmBtn" disabled>확인 (코드 생성)</button>
-    
-    <h3>불러온 HTML 코드</h3>
-    <textarea id="htmlCode" readonly></textarea>
+    <div class="container">
+        <h2>확률 시뮬레이터</h2>
+        <div id="inputs">
+            <div class="input-group">
+                <input type="text" placeholder="이름 입력">
+                <input type="number" placeholder="확률(%) 입력">
+                <button onclick="removeInput(this)">삭제</button>
+            </div>
+        </div>
+        <div class="buttons">
+            <button onclick="addInput()">이름 추가</button>
+            <button onclick="startRoulette()">확인</button>
+        </div>
+        <h2 id="result">결과가 여기에 표시됩니다.</h2>
+    </div>
 
     <script>
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+        function addInput() {
+            const div = document.createElement("div");
+            div.classList.add("input-group");
+            div.innerHTML = `
+                <input type="text" placeholder="이름 입력">
+                <input type="number" placeholder="확률(%) 입력">
+                <button onclick="removeInput(this)">삭제</button>
+            `;
+            document.getElementById("inputs").appendChild(div);
+        }
 
-            if (file && file.type === "text/html") {
-                const reader = new FileReader();
+        function removeInput(button) {
+            button.parentElement.remove();
+        }
 
-                reader.onload = function(e) {
-                    const fileContent = e.target.result;
-                    const htmlContent = minifyHtml(fileContent);
+        function startRoulette() {
+            const inputs = document.querySelectorAll(".input-group");
+            let names = [];
+            let probabilities = [];
 
-                    // 불러온 HTML 코드 출력
-                    document.getElementById('htmlCode').value = htmlContent;
-                    document.getElementById('confirmBtn').disabled = false;
-                };
+            inputs.forEach(input => {
+                const name = input.children[0].value.trim();
+                const prob = parseFloat(input.children[1].value.trim());
 
-                reader.readAsText(file);
+                if (name) {
+                    names.push(name);
+                    probabilities.push(isNaN(prob) ? null : prob);
+                }
+            });
+
+            if (names.length === 0) {
+                alert("이름을 입력해주세요.");
+                return;
+            }
+
+            // 확률이 입력되지 않은 경우 n분의 1 확률 설정
+            if (probabilities.every(p => p === null)) {
+                probabilities = Array(names.length).fill(100 / names.length);
             } else {
-                alert("HTML 파일만 선택하세요.");
-                event.target.value = "";
+                const totalProb = probabilities.reduce((sum, p) => sum + (p || 0), 0);
+                probabilities = probabilities.map(p => (p !== null ? p : (100 - totalProb) / names.filter((_, i) => probabilities[i] === null).length));
             }
-        });
 
-        document.getElementById('confirmBtn').addEventListener('click', async function() {
-            const textArea = document.getElementById('htmlCode');
-            const text = textArea.value;
+            // 룰렛 애니메이션
+            let resultText = document.getElementById("result");
+            let index = 0;
+            let duration = 5000; // 첫 5초 빠르게
+            let intervalTime = 100; // 초기 속도
+            let elapsed = 0;
+            
+            function spinRoulette() {
+                if (elapsed >= duration) {
+                    duration = 3000; // 그다음 3초 적당히 빠르게
+                    intervalTime = 300;
+                }
 
-            try {
-                // 최신 브라우저에서 클립보드 복사
-                await navigator.clipboard.writeText(text);
-                alert("HTML 코드가 복사되었습니다!");
-            } catch (err) {
-                // 구버전 브라우저에서 execCommand 사용
-                textArea.select();
-                document.execCommand("copy");
-                alert("HTML 코드가 복사되었습니다! (구방식)");
+                if (elapsed >= 8000) {
+                    clearInterval(spinInterval);
+                    let winner = pickWinner(names, probabilities);
+                    resultText.innerHTML = `<span class="winner">${winner}</span>`; // 당첨된 이름은 빨간색
+                    return;
+                }
+
+                resultText.innerHTML = names[index]; // 룰렛 애니메이션 중 이름은 검정색
+                resultText.style.color = "black";
+                index = (index + 1) % names.length;
+                elapsed += intervalTime;
+                spinInterval = setTimeout(spinRoulette, intervalTime);
             }
-        });
 
-        // HTML 코드 최소화 함수
-        function minifyHtml(html) {
-            return html.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+            let spinInterval = setTimeout(spinRoulette, intervalTime);
+        }
+
+        function pickWinner(names, probabilities) {
+            let sum = probabilities.reduce((a, b) => a + b, 0);
+            let rand = Math.random() * sum;
+            let cumulative = 0;
+
+            for (let i = 0; i < names.length; i++) {
+                cumulative += probabilities[i];
+                if (rand < cumulative) {
+                    return names[i];
+                }
+            }
         }
     </script>
-
 </body>
 </html>
